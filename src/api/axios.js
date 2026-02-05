@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://skill-tracker-backend-zwzc.onrender.com",
+  // baseURL: "https://skill-tracker-backend-zwzc.onrender.com",
+  baseURL: "http://localhost:5001/",
 });
 
 instance.interceptors.request.use((config) => {

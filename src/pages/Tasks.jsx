@@ -9,25 +9,35 @@ function Tasks() {
   const [title, setTitle] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
-  const fetchTasks = async (currentPage = 1) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchTasks = async (currentPage = page) => {
     try {
       const {data} = await axios.get(
-        `/tasks/getTask/${skillId}?page=${currentPage}&limit=5`,
+        `/tasks/getTask/${skillId}?page=${currentPage}&limit=5&search=${debouncedSearch}`,
       );
 
       setTasks(data.tasks);
       setTotalPages(data.totalPages);
-      // setPage(data.page);
     } catch {
       alert("Failed to fetch tasks");
     }
   };
+
   useEffect(() => {
-    const load = async () => {
+    const loadTasks = async () => {
       try {
         const {data} = await axios.get(
-          `/tasks/getTask/${skillId}?page=${page}&limit=5`,
+          `/tasks/getTask/${skillId}?page=${page}&limit=5&search=${debouncedSearch}`,
         );
 
         setTasks(data.tasks);
@@ -37,8 +47,8 @@ function Tasks() {
       }
     };
 
-    load();
-  }, [page, skillId]);
+    loadTasks();
+  }, [page, skillId, debouncedSearch]);
 
   // Add task
   const addTask = async (e) => {
@@ -67,7 +77,13 @@ function Tasks() {
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl mx-auto p-8">
         <h2 className="text-3xl font-bold mb-8">Tasks</h2>
-
+        <input
+          type="text"
+          placeholder="Search task..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border p-2 rounded mb-4 w-full"
+        />
         {/* Add Task Card */}
         <div className="bg-white p-6 rounded-2xl shadow mb-8">
           <form onSubmit={addTask} className="flex gap-4">
@@ -75,7 +91,10 @@ function Tasks() {
               type="text"
               placeholder="New task"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setPage(1);
+              }}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
             <button
